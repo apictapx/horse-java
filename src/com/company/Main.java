@@ -4,9 +4,11 @@ import java.util.Arrays;
 
 public class Main
 {
+    private static final byte FIELD_SIZE = 10;
+    private static int min_iteration = 200000;
+
     private static void combinations(int depth)
     {
-        int max_it = 100000000;
         int[] best_comb = new int[8];
 
         int[] i = new int[depth];
@@ -29,16 +31,16 @@ public class Main
                                         if (cont) {
                                             continue;
                                         }
-                                        int[] comb = new int[8];
-                                        for (int k = 0; k < depth; k++) {
-                                            comb[k] = i[k];
-//                                            comb[k + depth] = i[k] + depth;
-                                        }
 
-                                        int cur_it = find(comb);
-                                        if (cur_it > 0 && cur_it < max_it) {
-                                            best_comb = Arrays.copyOf(comb, comb.length);
-                                            max_it = cur_it;
+                                        int cur_it = find(i, min_iteration);
+                                        if (cur_it > 0 && cur_it < min_iteration) {
+                                            best_comb = Arrays.copyOf(i, i.length);
+                                            min_iteration = cur_it;
+                                        }
+                                        if (cur_it == (FIELD_SIZE * FIELD_SIZE - 1)) {
+                                            for (int j = 0; j < i.length; j++) {
+                                                i[j] = depth;
+                                            }
                                         }
                                     }
                                 }
@@ -47,41 +49,39 @@ public class Main
                     }
                 }
             }
+            System.out.println(i[0]+1 +"/"+ depth +" done.");
         }
 
-        System.out.println("Best result "+ max_it +" with combination "+ Arrays.toString(best_comb));
+        System.out.println("Best result "+ min_iteration +" with combination "+ Arrays.toString(best_comb));
     }
     
     public static void main(String[] args)
     {
         long running_time = -System.currentTimeMillis();
 
-//        combinations(8);
-        find(new int[]{1, 5, 7, 3, 0, 2, 6, 4});
-        // fs=5 it=24 - Best {1, 5, 7, 3, 0, 2, 6, 4}
-        // fs=6 it=2189389
-        // fs=7 it=38505
-        // fs=8 it=1234907
-        // TODO совершенно ясно что в полном переборе больших досок нет никакого смысла.
-        // TODO важно перебирать ключи обхода доски, останавливая перебор при достижении большого
-        // TODO количества итераций (1 000 000)
-
-        // TODO сделать условие выхода по кол-ву итераций
-        // TODO запустить перебор ключей для досок 6-10
+        combinations(8);
+        // fs=5  it=24   Best [1, 5, 7, 3, 0, 2, 6, 4] Total  2.9 sec
+        // fs=6  it=345  Best [1, 3, 5, 7, 4, 0, 2, 6] Total 28.6 sec
+        // fs=7  it=74   Best [1, 3, 7, 4, 5, 0, 2, 6] Total  7.7 sec
+        // fs=8  it=1332 Best [3, 5, 7, 6, 4, 2, 0, 1] Total 32.4 sec
+        // fs=9  it=1654 Best [5, 6, 4, 7, 2, 3, 0, 1] Total 62.2 sec
+        // fs=10 it=128678 Best [2, 6, 4, 7, 3, 0, 5, 1] Total  sec
 
         running_time += System.currentTimeMillis();
         System.out.println("Totally run "+ running_time +" msec.");
     }
 
-    private static int find(int[] comb)
+    private static int find(int[] comb, int min_iteration)
     {
-        final byte FIELD_SIZE = 10;
-
         long running_time = -System.currentTimeMillis();
 
         HorseKeeper horseKeeper = new HorseKeeper(FIELD_SIZE, 1, comb);
         horseKeeper.add((byte)0, (byte)0, new byte[FIELD_SIZE][FIELD_SIZE], (byte)1);
-        int iterations = horseKeeper.findTheWay();
+        int iterations = horseKeeper.findTheWay(min_iteration);
+
+        if (iterations == 0) {
+            return iterations;
+        }
 
         running_time += System.currentTimeMillis();
         //int peak_memory = memory_get_peak_usage() / 1024;

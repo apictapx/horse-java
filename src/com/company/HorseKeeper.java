@@ -40,7 +40,7 @@ public class HorseKeeper {
         return field;
     }
 
-    public int findTheWay()
+    public int findTheWay(int max_iterations)
     {
         int c = 0;
         int last_step = field_size * field_size;
@@ -70,6 +70,11 @@ public class HorseKeeper {
                 showField();
             }
             horsesQueue.remove(horseNumber);
+
+            if (c > max_iterations) {
+                c = 0;
+                break;
+            }
         }
 
         showResults(c);
@@ -88,6 +93,9 @@ public class HorseKeeper {
 
     private void showResults(int c)
     {
+        if (c == 0) {
+            return;
+        }
         if (horsesQueue.size() > 0) {
             System.out.print("Active horses "+ horsesQueue.size());
         }
